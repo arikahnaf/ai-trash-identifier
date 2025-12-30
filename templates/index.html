@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Trash Identifier</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="main-card">
+        <header>
+            <h1 class="title">AI Trash Identifier</h1>
+            <p class="subtitle">Identify waste for proper sorting.</p>
+        </header>
+
+        <div class="upload-container">
+            <input type="file" id="file-upload" accept="image/*" hidden>
+            
+            <label for="file-upload" class="upload-label" id="upload-label-area">
+                <div class="icon-wrapper bounce">
+                    <img src="{{ url_for('static', filename='camera-icon.png') }}" alt="Upload">
+                </div>
+                <span class="cta-text">Upload Trash Image</span>
+            </label>
+
+            <div id="preview-container" class="hidden">
+                <img id="image-preview" src="" alt="Preview">
+                <button id="change-image-btn">Change Image</button>
+            </div>
+        </div>
+
+        <div id="loading" class="hidden">
+            <div class="spinner"></div>
+            <p>Analyzing...</p>
+        </div>
+
+        <div id="result-container" class="hidden">
+            <h2 id="prediction-result">Detected: <span id="result-text">...</span></h2>
+            <p class="confidence-label">Confidence: <span id="confidence-text">...</span></p>
+        </div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('file-upload');
+        const uploadLabelArea = document.getElementById('upload-label-area');
+        const previewContainer = document.getElementById('preview-container');
+        const imagePreview = document.getElementById('image-preview');
+        const changeImageBtn = document.getElementById('change-image-btn');
+        const loadingDiv = document.getElementById('loading');
+        const resultContainer = document.getElementById('result-container');
+        const resultText = document.getElementById('result-text');
+        const confidenceText = document.getElementById('confidence-text');
+
+        // 1. Handle File Selection
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                // Show Preview
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    imagePreview.src = event.target.result;
+                    uploadLabelArea.classList.add('hidden');
+                    previewContainer.classList.remove('hidden');
+                    resultContainer.classList.add('hidden');
+                }
+                reader.readAsDataURL(file);
+
+                // Send to AI Model
+                uploadImage(file);
+            }
+        });
+
+        // 2. Handle "Change Image" button
+        changeImageBtn.addEventListener('click', function() {
+            fileInput.click();
+        });
+
+        // 3. Function to send image to Flask backend
+        function uploadImage(file) {
+            const formData = new FormData();
+            formData.append('image', file);
+
+            // Show loading, hide previous results
+            loadingDiv.classList.remove('hidden');
+            resultContainer.classList.add('hidden');
+
+            fetch('/predict', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Hide loading
+                loadingDiv.classList.add('hidden');
+                resultContainer.classList.remove('hidden');
+
+                if (data.prediction) {
+                    resultText.textContent = data.prediction;
+                    confidenceText.textContent = data.confidence;
+                    
+                    // Apply styling based on result
+                    if (data.prediction === 'Recyclable') {
+                        resultContainer.className = 'result-box recycle-theme';
+                    } else {
+                        resultContainer.className = 'result-box organic-theme';
+                    }
+                } else if (data.error) {
+                    resultText.textContent = "Error";
+                    confidenceText.textContent = data.error;
+                    resultContainer.className = 'result-box error-theme';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                loadingDiv.classList.add('hidden');
+                resultText.textContent = "System Error";
+                resultContainer.className = 'result-box error-theme';
+            });
+        }
+    </script>
+</body>
+</html>
