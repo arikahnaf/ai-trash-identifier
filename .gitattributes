@@ -1,0 +1,6 @@
+# Ignore HTML and CSS in language stats
+templates/* linguist-vendored
+static/* linguist-vendored
+
+# Force Python to be detected
+*.py linguist-language=Python
