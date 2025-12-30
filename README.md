@@ -12,7 +12,7 @@ Built with **TensorFlow** and **Flask**, featuring a modern UI and real-time pre
 - **Real-Time Predictions**  
   Images are processed asynchronously using AJAX, no page reloads.
 - **Apple Silicon Optimized**  
-  Training pipeline leverages `tensorflow-macos` and `tensorflow-metal` for GPU acceleration on **M1 / M2 / M3 / M4** chips.
+  Training pipeline leverages `tensorflow-macos` and `tensorflow-metal` for GPU acceleration on **M1/M2/M3/M4** chips.
 - **Clean & Responsive UI**  
   Single-page interface with image preview, loading animation, and confidence score.
 - **End-to-End ML Pipeline**  
